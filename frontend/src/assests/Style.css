@@ -1,0 +1,34 @@
+.login-form {
+    top: 50%;
+    left: 55%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 40%;
+}
+
+.login-form h2 {
+    font-size: 40px;
+    font-family: sans-serif;
+}
+
+.login-page .title {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.login-page {
+    display: flex;
+    text-align: center;
+    margin-top: 8%;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.login-page h1 {
+    font-size: 45px;
+    font-weight: 600;
+    color: brown;
+}
