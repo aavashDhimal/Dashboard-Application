@@ -11,6 +11,8 @@ router.post('/auth/register',authController.registerUser);
 
 router.post('/auth/login',authController.login);
 
-router.get('/load_logs',checkToken,logsController.populateLogs)
+router.get('/load_logs',checkToken,logsController.populateLogs);
+
+router.get('/get_data',checkToken,logsController.getData)
 
 module.exports = router;

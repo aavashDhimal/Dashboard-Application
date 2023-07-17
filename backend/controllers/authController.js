@@ -2,24 +2,29 @@ const userDB = require('../dbServices/users.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+const UserModel =require('../models/userModel.js');
 
 const registerUser = async (req, res) => {
     try { 
         const userId = uuidv4();
 
         console.log(req.body)
-        const checkUser = await userDB.checkUser(req.body.user);
-        if (checkUser.length >0) {
+       
+        const checkUser = await UserModel.findOne({ username :req.body.user });
+        console.log(checkUser,"asd")
+        if (checkUser) {
             throw new Error("User already exists");
         }
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const newUser = { id: userId, username: req.body.user, password: hashedPassword };
-        let registered = await userDB.registerUser(newUser);
+        const userData = {  username: req.body.user, password: hashedPassword };
+        const newUser = new UserModel( userData );
+         let registered = await newUser.save();
         res.status(400).json({
             message: "User Registered",
             data: registered
         })
     } catch (error) {
+        console.log(error);
         res.status(400).json({
             message: " Error",
             error: error.message,
@@ -30,10 +35,10 @@ const registerUser = async (req, res) => {
 const login = async (req, res) => {
 try{
     const { user, password } = req.body;
-    const checkUser = await userDB.checkUser(user);
-    console.log(checkUser[0]._source,"checkuser")
-    let hashedPass = checkUser[0]._source.password
-    let username = checkUser[0]._source.username
+    const checkUser = await UserModel.findOne({username : user});
+    console.log(checkUser,"check user")
+    let hashedPass = checkUser.password
+    let username = checkUser.username
     let jwtPayload = { 
         user: username, 
       };
