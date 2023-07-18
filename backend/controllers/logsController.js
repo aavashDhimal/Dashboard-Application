@@ -61,6 +61,7 @@ const parseNginxLogs = (logEntry) => {
             url,
             httpStatus,
             responseSize,
+            userAgent,
             raw: logEntry
         }
 
@@ -112,8 +113,10 @@ const populateLogs = async (req, res) => {
 }
 
 
-getMostRepeated = async (parameter) => {
+const getMostRepeated = async (parameter, match) => {
+    console.log("match",match)
     const repeatedIP = await LogModel.aggregate([
+        { $match: match },
         {
             $group: {
                 _id: `$${parameter}`,
@@ -135,58 +138,116 @@ getMostRepeated = async (parameter) => {
 }
 
 
-const getbarData = async (selectedDays, granularity) => {
+const getbarData = async (selectedDays, source) => {
     const date = moment("2015/05/17", "YYYY/MM/DD").toDate();
     const upto = moment(date).endOf('day').toDate();
-    const logs = await LogModel.find({
+    const query = {
         dateTime: {
             $gte: date,
             $lt: upto,
-        },
-    });
+        }
+    };
 
-    // Create an array of hours (0 to 23)
+    if (source) {
+        query.source = source;
+    }
+
+    const logs = await LogModel.find(query);
+
+
     const hours = Array.from({ length: 24 }, (_, i) => i);
 
-    // Initialize an object to store the event counts per hour
     const eventCounts = hours.reduce((acc, hour) => {
         acc[hour] = 0;
         return acc;
     }, {});
 
-    // Count the number of events for each hour
     logs.forEach((log) => {
         const logHour = new Date(log.dateTime).getHours();
         eventCounts[logHour]++;
     });
 
-    // Prepare the data for the chart
     const chartLabels = Object.keys(eventCounts);
     const chartData = Object.values(eventCounts);
     return { chartLabels, chartData }
-    console.log(chartLabels, "labels", chartData)
 }
 
-const getStatusCount = async () =>{
+const getReqCount = async (parameter,match) => {
     const result = await LogModel.aggregate([
-        { $group: { _id: '$httpStatus', count: { $sum: 1 } } },
+        { $match:  match},
+        { $group: { _id: `$${parameter}`, count: { $sum: 1 } } },
         { $sort: { _id: 1 } } // Optional: Sort the result by status code
-      ]);
-      return result
+    ]);
+    return result
 }
+
+const getResponseChart = async (selectedDays, source) =>{
+const date = moment("2015/05/17", "YYYY/MM/DD").toDate();
+const upto = moment(date).endOf('day').toDate();
+const query = {
+  dateTime: {
+    $gte: date,
+    $lt: upto,
+  }
+};
+
+if (source) {
+  query.source = source;
+}
+
+const logs = await LogModel.find(query);
+
+const hours = Array.from({ length: 24 }, (_, i) => i);
+
+const responseSizesPerHour = hours.reduce((acc, hour) => {
+  acc[hour] = 0;
+  return acc;
+}, {});
+
+logs.forEach((log) => {
+  const logHour = new Date(log.dateTime).getHours();
+  responseSizesPerHour[logHour] += parseInt(log.responseSize, 10); // Assuming responseSize is stored as a string, convert it to a number.
+});
+
+const chartLabels = Object.keys(responseSizesPerHour);
+const chartData = Object.values(responseSizesPerHour);
+return (chartLabels,chartData);
+}
+
 
 const getData = async (req, res) => {
     try {
-        const activeIP = await getMostRepeated('ipAddress');
-        const commonReq = await getMostRepeated('httpMethod');
-        const count = await LogModel.countDocuments();
-        const barData = await getbarData();
-        const statusData = await getStatusCount();
-        
-        console.log(activeIP, "repIP", commonReq, "count", count,"status",statusData);
+        let source = req.query.source ?? ''
+        const match = source ? { "source": source } : {};
+        console.log(match,"match")
+        const activeIP = await getMostRepeated('ipAddress',match);
+        const commonReq = await getReqCount('httpMethod',match);
+        const count = await LogModel.countDocuments(match);
+        const barData = await getbarData('', source);
+        const statusData = await getReqCount('httpStatus',match);
+        const userAgents = await LogModel.aggregate([
+            { $match: match },
+            { $group: { _id: '$userAgent' } },
+            { $project: { _id: 0, userAgent: '$_id' } } 
+          ]);
+          const responseChart = await getResponseChart('', source);
 
+        console.log(activeIP, "repIP", commonReq, "count", count, "status", statusData,);
+        res.status(200).json({
+            activeIP,
+            commonReq,
+            count,
+            barData,
+            statusData,
+            userAgents,
+            responseChart,
+        })
     } catch (error) {
         console.log(error)
+        res.status(400).json({
+            message: "Error",
+            error: error.message,
+        })
     }
 }
 
