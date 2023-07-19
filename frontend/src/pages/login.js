@@ -58,7 +58,7 @@ useEffect(()=>{
   return (
     <div className='login-page'>
       <div className='title'>
-        <div className='title-nav'>Dashboard</div>
+        <div className='title-nav'>Dashboard Application</div>
       </div>
       <div className="login-form">
         <h2 style={{margin : "20px"}}>Login To Continue</h2>
