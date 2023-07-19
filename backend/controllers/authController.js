@@ -35,8 +35,11 @@ const registerUser = async (req, res) => {
 const login = async (req, res) => {
 try{
     const { user, password } = req.body;
+    console.log(req.body)
     const checkUser = await UserModel.findOne({username : user});
-    console.log(checkUser,"check user")
+    if(!checkUser){
+        throw new Error("User Not Found")
+    }
     let hashedPass = checkUser.password
     let username = checkUser.username
     let jwtPayload = { 
@@ -49,7 +52,7 @@ try{
     } else {
       throw new Error("Incorrect Password or Username");
     }
-    res.status(400).json({
+    res.status(200).json({
         message : "Success",
         token : token
     })

@@ -3,14 +3,17 @@ import { EuiProvider } from "@elastic/eui";
 import "@elastic/eui/dist/eui_theme_dark.css";
 import LoginPage from './pages/login';
 import "./assests/Style.css";
+import Dashboard from './pages/dashBoard';
 
 function App() {
   return (
     <div className="App">
-      <EuiProvider colorMode="light">
+      <EuiProvider colorMode="dark">
         <BrowserRouter>
       <Routes>
         <Route path='/login' element={<LoginPage/>} />
+        <Route path='/dashboard' element={<Dashboard />}/>
+
       </Routes>
       </BrowserRouter>
       </EuiProvider>

@@ -1,11 +1,7 @@
 .login-form {
-    top: 50%;
-    left: 55%;
-    transform: translate(-50%, -50%);
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    width: 40%;
+    width: 400px;
+      height: 100px;
+    padding :15px 6px 15px 15px
 }
 
 .login-form h2 {
@@ -13,22 +9,65 @@
     font-family: sans-serif;
 }
 
-.login-page .title {
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
-}
+
 
 .login-page {
-    display: flex;
-    text-align: center;
-    margin-top: 8%;
+    height: 100vh;
+    width: 100vw;
+  background-color: #f0f0f0;
+    background-size: cover;
     justify-content: center;
-    flex-direction: column;
+      align-items: center;
 }
 
-.login-page h1 {
+.title {
+    display: flex;
+    top: 0;
+    width : 100% ;
+    background: rgb(25,47,162);
+    background: linear-gradient(90deg, rgba(25,47,162,1) 0%, rgba(2,3,4,1) 59%);
+    height : 85px;
+}
+
+ .title-nav {
+    padding-right: 20px;
     font-size: 45px;
     font-weight: 600;
     color: brown;
+    margin: 15px;
+    margin-right: 15px;
+}
+
+.total-count{ 
+ 
+      text-align : "center"
+}
+
+.total-count h1{
+  font-size: 28px;
+  font-family: sans-serif;
+}
+.total-count h2{
+  margin-top: 3px;
+  padding-top: 2px;
+  font-size: 18px;
+  color: rgb(0, 0, 255);
+  font-family: sans-serif;
+}
+.euiBasicTable {
+  background-color: black;
+  color: black;
+}
+
+.euiTableRow {
+  border-color: #3a3a3a;
+}
+
+.euiTableCellContent {
+  background-color: #1d1e24;
+  color: bisque;
+}
+.euiTable{
+  background-color: #1d1e24;
+
 }
