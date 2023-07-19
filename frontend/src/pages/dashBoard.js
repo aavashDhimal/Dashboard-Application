@@ -104,8 +104,8 @@ const Dashboard = () => {
       name: "Agent",
     },
     {
-      field: "Count",
-      name: "count",
+      field: "count",
+      name: "Count",
     },
   ];
 
@@ -189,7 +189,8 @@ const handleScroll = () =>{
   </EuiModal>
     )
   }
-  const username =localStorage.getItem("dash_user")
+  const username =localStorage.getItem("dash_user");
+
   console.log("store",state)
   return (
     <div>

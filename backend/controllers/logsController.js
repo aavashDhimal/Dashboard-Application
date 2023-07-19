@@ -215,7 +215,11 @@ const getData = async (req, res) => {
         const count = await LogModel.countDocuments(match, { query: dates });
         const chartsData = await getbarData(dates, source);
         const statusData = await getReqCount('httpStatus', match, dates);
-        const userAgents = await getReqCount('userAgent',match)
+        const userAgents = await LogModel.aggregate([
+            { $group: { _id: '$userAgent', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 },
+          ]);
         const responseChart = chartsData.sizeData;
         const barData = {
             chartLabels : chartsData.chartLabels,

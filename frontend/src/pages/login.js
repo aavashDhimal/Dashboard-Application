@@ -28,7 +28,6 @@ const LoginPage = () => {
 useEffect(()=>{
   localStorage.removeItem("auth_token");
   localStorage.removeItem("dash_user");
-
 },[])
 
   const handleSubmit = async (event) => {
@@ -44,7 +43,7 @@ useEffect(()=>{
       localStorage.setItem("auth_token", response.data.token);
       localStorage.setItem("dash_user", response.data.user);
 
-      navigate("/dashboard");
+      navigate("/");
     })
     .catch(function (error) {
       console.log("error", error);

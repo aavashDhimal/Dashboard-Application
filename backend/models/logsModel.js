@@ -10,7 +10,8 @@ const logsSchema = new mongoose.Schema({
   url: { type: String },
   httpStatus: { type: Number },
   responseSize: { type: String },
-  raw: { type: String }
+  raw: { type: String },
+  userAgent : {type : String},
 });
 
 const logsModel = mongoose.model('LogData', logsSchema);
