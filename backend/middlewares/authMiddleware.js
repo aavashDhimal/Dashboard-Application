@@ -12,11 +12,10 @@ const checkToken = async (req,res,next) =>{
     const token = authHeader.split(' ')[1];
   
       const decoded = jwt.verify(token, process.env.SECRETE_KEY);
-      console.log('decoded',decoded)
       if(!decoded){
         throw new Error("Invalid Token")
       }
-      req.user = decoded; 
+      req.user = decoded.user;
       next();
     } catch (error) {
         console.log(error,"error")

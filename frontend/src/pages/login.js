@@ -1,6 +1,6 @@
 import { EuiFieldText, EuiButton, EuiForm, EuiFormRow } from '@elastic/eui';
 import '@elastic/eui/dist/eui_theme_light.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 import base_url from '../helpers/constants';
@@ -25,6 +25,11 @@ const LoginPage = () => {
     
 };
   
+useEffect(()=>{
+  localStorage.removeItem("auth_token");
+  localStorage.removeItem("dash_user");
+
+},[])
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -37,7 +42,8 @@ const LoginPage = () => {
     .then(function (response) {
       console.log(response.data.token,"asdasd");
       localStorage.setItem("auth_token", response.data.token);
-      // toast("Welcome!!");
+      localStorage.setItem("dash_user", response.data.user);
+
       navigate("/dashboard");
     })
     .catch(function (error) {

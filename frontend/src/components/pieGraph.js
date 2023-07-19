@@ -1,23 +1,10 @@
 import { Pie } from "react-chartjs-2";
 
-function PieChart() {
-    const data = [
-    {
-        "_id": "GET",
-        "count": 34089
-      },
-      {
-        "_id": "POST",
-        "count": 6
-      },
-      {
-        "_id": "DELETE",
-        "count": 3
-      }
-    ]
+function PieChart({data}) {
+  
 
     const chartData = {
-      labels: data.map(item => item._id),
+      labels: data?.map(item => item._id),
       datasets: [
         {
           fill: true,
@@ -42,7 +29,7 @@ function PieChart() {
       },
       legend: {
         display: true,
-        position: "top"
+        position: "left"
       },
 
       tooltips: {

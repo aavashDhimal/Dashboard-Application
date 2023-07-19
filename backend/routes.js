@@ -13,6 +13,8 @@ router.post('/auth/login',authController.login);
 
 router.get('/load_logs',checkToken,logsController.populateLogs);
 
-router.get('/get_data',checkToken,logsController.getData)
+router.get('/get_data',checkToken,logsController.getData);
+
+router.get('/get_table_data',checkToken,logsController.getTableData);
 
 module.exports = router;

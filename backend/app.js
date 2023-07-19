@@ -7,8 +7,7 @@ const cors = require('cors')
 
 const mongoose = require('mongoose');
 
-// Replace 'your_connection_string' with your MongoDB Atlas connection string
-const connectionString = 'mongodb+srv://dashboard:abcdefg@cluster0.tnly6ed.mongodb.net/?retryWrites=true&w=majority';
+const connectionString = process.env.MONGO_URL;
 
 // Connect to MongoDB Atlas
 mongoose.connect(connectionString, {

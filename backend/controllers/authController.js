@@ -1,4 +1,3 @@
-const userDB = require('../dbServices/users.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
@@ -54,7 +53,8 @@ try{
     }
     res.status(200).json({
         message : "Success",
-        token : token
+        token : token,
+        user : username
     })
 }catch(error){
     console.log("error",error)

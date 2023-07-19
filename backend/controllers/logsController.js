@@ -1,5 +1,4 @@
 const axios = require('axios')
-const logsDB = require('../dbServices/logsDB.js');
 const LogModel = require('../models/logsModel.js')
 const moment = require('moment');
 
@@ -114,7 +113,7 @@ const populateLogs = async (req, res) => {
 
 
 const getMostRepeated = async (parameter, match) => {
-    console.log("match",match)
+    console.log("match", match)
     const repeatedIP = await LogModel.aggregate([
         { $match: match },
         {
@@ -138,20 +137,22 @@ const getMostRepeated = async (parameter, match) => {
 }
 
 
-const getbarData = async (selectedDays, source) => {
+const getbarData = async (dates, source) => {
     const date = moment("2015/05/17", "YYYY/MM/DD").toDate();
     const upto = moment(date).endOf('day').toDate();
     const query = {
-        dateTime: {
-            $gte: date,
-            $lt: upto,
-        }
+
     };
 
     if (source) {
         query.source = source;
     }
-
+    if (dates) {
+        query.dateTime = {
+            $gte: dates.start,
+            $lt: dates.end,
+        }
+    }
     const logs = await LogModel.find(query);
 
 
@@ -162,78 +163,69 @@ const getbarData = async (selectedDays, source) => {
         return acc;
     }, {});
 
-    logs.forEach((log) => {
+    const responseSizesPerHour = hours.reduce((acc, hour) => {
+        acc[hour] = 0;
+        return acc;
+      }, {});
+      
+      logs.forEach((log) => {
         const logHour = new Date(log.dateTime).getHours();
+        const responseSize = parseInt(log.responseSize, 10)/1024;
+        responseSizesPerHour[logHour] += isNaN(responseSize) ? 0 : responseSize;
         eventCounts[logHour]++;
-    });
-
+      });
+      const sizeLabels = Object.keys(responseSizesPerHour);
+      const sizeData = Object.values(responseSizesPerHour);
+   
+        
     const chartLabels = Object.keys(eventCounts);
-    const chartData = Object.values(eventCounts);
-    return { chartLabels, chartData }
+    const chartDatas = Object.values(eventCounts);
+    const lineData = Object.values(responseSizesPerHour);
+    return { chartLabels, chartDatas ,sizeData}
 }
 
-const getReqCount = async (parameter,match) => {
+const getReqCount = async (parameter, match) => {
     const result = await LogModel.aggregate([
-        { $match:  match},
+        { $match: match },
         { $group: { _id: `$${parameter}`, count: { $sum: 1 } } },
-        { $sort: { _id: 1 } } // Optional: Sort the result by status code
+        { $sort: { _id: 1 } }
     ]);
     return result
 }
 
-const getResponseChart = async (selectedDays, source) =>{
-const date = moment("2015/05/17", "YYYY/MM/DD").toDate();
-const upto = moment(date).endOf('day').toDate();
-const query = {
-  dateTime: {
-    $gte: date,
-    $lt: upto,
-  }
-};
 
-if (source) {
-  query.source = source;
-}
-
-const logs = await LogModel.find(query);
-
-const hours = Array.from({ length: 24 }, (_, i) => i);
-
-const responseSizesPerHour = hours.reduce((acc, hour) => {
-  acc[hour] = 0;
-  return acc;
-}, {});
-
-logs.forEach((log) => {
-  const logHour = new Date(log.dateTime).getHours();
-  responseSizesPerHour[logHour] += parseInt(log.responseSize, 10); // Assuming responseSize is stored as a string, convert it to a number.
-});
-
-const chartLabels = Object.keys(responseSizesPerHour);
-const chartData = Object.values(responseSizesPerHour);
-return (chartLabels,chartData);
-}
 
 
 const getData = async (req, res) => {
     try {
-        let source = req.query.source ?? ''
-        const match = source ? { "source": source } : {};
-        console.log(match,"match")
-        const activeIP = await getMostRepeated('ipAddress',match);
-        const commonReq = await getReqCount('httpMethod',match);
-        const count = await LogModel.countDocuments(match);
-        const barData = await getbarData('', source);
-        const statusData = await getReqCount('httpStatus',match);
-        const userAgents = await LogModel.aggregate([
-            { $match: match },
-            { $group: { _id: '$userAgent' } },
-            { $project: { _id: 0, userAgent: '$_id' } } 
-          ]);
-          const responseChart = await getResponseChart('', source);
+        let source = ''
+        if (req.user != 'admin') {
+            console.log("not admin", req.user)
+            source = req.user;
+        }
+        if (req.query.dateFrom && req.query.dateTo) {
+            console.log("date", date)
+            var dates = { $gte: req.query.dateFrom, $lte: req.query.dateTo }
 
-        console.log(activeIP, "repIP", commonReq, "count", count, "status", statusData,);
+        }
+        const match = source ? { "source": source } : {};
+        console.log(match, "match")
+        const activeIP = await getMostRepeated('ipAddress', match, dates);
+        const commonReq = await getReqCount('httpMethod', match, dates);
+        const count = await LogModel.countDocuments(match, { query: dates });
+        const chartsData = await getbarData(dates, source);
+        const statusData = await getReqCount('httpStatus', match, dates);
+        const userAgents = await getReqCount('userAgent',match)
+        const responseChart = chartsData.sizeData;
+        const barData = {
+            chartLabels : chartsData.chartLabels,
+            chartData : chartsData.chartDatas
+        }
+
+        console.log(chartsData,"asdasd")
         res.status(200).json({
+            message : "Success",
+            data :  {
             activeIP,
             commonReq,
             count,
@@ -241,6 +233,7 @@ const getData = async (req, res) => {
             statusData,
             userAgents,
             responseChart,
+            }
         })
     } catch (error) {
         console.log(error)
@@ -252,7 +245,45 @@ const getData = async (req, res) => {
 }
 
 
+const getTableData = async (req, res) => {
+    try {
+
+        const page = req.query.page || 1;
+        const pageSize = 20;
+        let source = ''
+        if (req.user != 'admin') {
+            console.log("not admin", req.user)
+            source = req.user;
+        }
+        let query = {}
+        if (req.date) {
+            query = {
+                dateTime: {
+                    $gte: date,
+                    $lt: upto,
+                }
+            }
+        };
+
+        if (source) {
+            query.source = source;
+        }
+        const logData = await LogModel.find()
+            .skip((page - 1) * pageSize)
+            .limit(pageSize);
+
+        res.status(200).json({
+            message : "success",
+            logData });
+    } catch (err) {
+        console.log(err, "err")
+        res.status(400).json({ error: err.message });
+    }
+
+}
+
 module.exports = {
     populateLogs,
-    getData
+    getData,
+    getTableData
 }

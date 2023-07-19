@@ -4,7 +4,7 @@ import "@elastic/eui/dist/eui_theme_dark.css";
 import LoginPage from './pages/login';
 import "./assests/Style.css";
 import Dashboard from './pages/dashBoard';
-
+import ProtectedRoute from './helpers/protectedRoute';
 function App() {
   return (
     <div className="App">
@@ -12,8 +12,12 @@ function App() {
         <BrowserRouter>
       <Routes>
         <Route path='/login' element={<LoginPage/>} />
-        <Route path='/dashboard' element={<Dashboard />}/>
 
+        <Route path='/' element={
+                <ProtectedRoute>
+        < Dashboard/>
+        </ProtectedRoute>
+}/>
       </Routes>
       </BrowserRouter>
       </EuiProvider>
